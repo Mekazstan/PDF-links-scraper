@@ -81,9 +81,17 @@ def scrape_links(driver, conn, cursor):
                 table_data = row.find_elements(By.TAG_NAME, "td")
                 book_title, book_link = handle_table_data(table_data)
                 if book_title and book_link:
-                    # Insert the data into the SQLite database
-                    insert_query = "INSERT INTO pdf_data (title, pdf_link) VALUES (?, ?);"
-                    cursor.execute(insert_query, (book_title, book_link))
+                    ####### VALIDATION TEST ###########
+                    # Check if the PDF link already exists in the SQLite database
+                    select_query = "SELECT id FROM pdf_data WHERE pdf_link = ?;"
+                    cursor.execute(select_query, (book_link,))
+                    existing_data = cursor.fetchone()
+                    if not existing_data:
+                        # PDF link doesn't exist, insert the data into the SQLite database
+                        insert_query = "INSERT INTO pdf_data (title, pdf_link) VALUES (?, ?);"
+                        cursor.execute(insert_query, (book_title, book_link))
+                    else:
+                        print(f"PDF link already exists: {book_link}")
             conn.commit()
         else:
             print("Not OK")
